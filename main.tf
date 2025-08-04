@@ -103,7 +103,16 @@ module "kubectl_setup" {
   cluster_endpoint     = module.eks.cluster_endpoint
   cluster_ca_certificate = module.eks.cluster_certificate_authority_data
   aws_region           = var.aws_region
+  
+  # Dependencies - Wait for EKS to be fully ready
   cluster_ready        = module.eks.cluster_status
+  cluster_status       = module.eks.cluster_status
+  node_groups_ready    = module.eks.node_group_status
+  addons_ready         = module.eks.addon_status
+
+  # IAM Configuration (using existing EKS permissions)
+  create_iam_role = false
+  common_tags     = var.common_tags
 
   depends_on = [module.eks]
 }
