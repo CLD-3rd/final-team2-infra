@@ -166,6 +166,47 @@ resource "aws_iam_role" "cluster_admin" {
   })
 }
 
+# Cluster Admin Policy for cert-manager and other cluster operations
+resource "aws_iam_policy" "cluster_admin" {
+  name = "${var.project_name}-${var.environment}-eks-cluster-admin-policy"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "eks:DescribeCluster",
+          "eks:ListClusters",
+          "eks:AccessKubernetesApi",
+          "eks:DescribeNodegroup",
+          "eks:ListNodegroups"
+        ]
+        Resource = "*"
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "iam:GetRole",
+          "iam:PassRole"
+        ]
+        Resource = aws_iam_role.cluster_admin.arn
+      }
+    ]
+  })
+
+  tags = merge(var.common_tags, {
+    Name = "${var.project_name}-${var.environment}-eks-cluster-admin-policy"
+    Type = "IAM-Policy"
+  })
+}
+
+# Attach cluster admin policy to role
+resource "aws_iam_role_policy_attachment" "cluster_admin" {
+  role       = aws_iam_role.cluster_admin.name
+  policy_arn = aws_iam_policy.cluster_admin.arn
+}
+
 # EBS CSI Driver IAM Role
 resource "aws_iam_role" "ebs_csi_driver" {
   name = "${var.project_name}-${var.environment}-ebs-csi-driver-role"

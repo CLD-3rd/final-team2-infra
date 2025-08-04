@@ -76,6 +76,24 @@ module "eks" {
   common_tags = var.common_tags
 }
 
+# Cert-Manager Module
+module "cert_manager" {
+  source = "./modules/cert-manager"
+
+  # Cert-manager Configuration
+  cert_manager_version = var.cert_manager_version
+  letsencrypt_email    = var.letsencrypt_email
+  ingress_class        = var.ingress_class
+  enable_prometheus    = var.enable_cert_manager_prometheus
+
+  # Tags
+  common_tags = var.common_tags
+
+  # Dependencies - Wait for EKS to be fully ready
+  eks_cluster_ready = module.eks.cluster_status
+  depends_on = [module.eks]
+}
+
 # Output important values
 output "vpc_id" {
   description = "VPC ID"
@@ -95,6 +113,27 @@ output "eks_cluster_name" {
 output "ssm_session_manager_url" {
   description = "SSM Session Manager Connection Guide"
   value       = "Use 'aws ssm start-session --target <instance-id> --profile default' to connect"
+}
+
+# Cert-Manager Outputs
+output "cert_manager_namespace" {
+  description = "Cert-manager namespace"
+  value       = module.cert_manager.cert_manager_namespace
+}
+
+output "letsencrypt_staging_issuer" {
+  description = "Let's Encrypt staging ClusterIssuer name"
+  value       = module.cert_manager.letsencrypt_staging_issuer
+}
+
+output "letsencrypt_prod_issuer" {
+  description = "Let's Encrypt production ClusterIssuer name"
+  value       = module.cert_manager.letsencrypt_prod_issuer
+}
+
+output "cert_manager_status" {
+  description = "Cert-manager installation status"
+  value       = module.cert_manager.cert_manager_status
 } 
 
 # OAC ===========

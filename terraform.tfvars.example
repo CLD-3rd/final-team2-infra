@@ -48,6 +48,12 @@ eks_node_groups = {
 # db_password_postgresql = ""  # Will be set via TF_VAR_db_password_postgresql
 # db_password_mongodb    = ""  # Will be set via TF_VAR_db_password_mongodb
 
+# Cert-Manager Configuration
+cert_manager_version = "1.13.0"
+# letsencrypt_email = "your-email@domain.com"  # Set via environment variable TF_VAR_letsencrypt_email
+ingress_class        = "nginx"
+enable_cert_manager_prometheus = false
+
 # Common Tags
 common_tags = {
   Environment = "team"

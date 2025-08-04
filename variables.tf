@@ -208,3 +208,29 @@ variable "subject_alternative_names" {
   default = [] 
   description = "Optional list of Subject Alternative Names (SANs) for the ACM certificate"
 }
+
+# Cert-Manager Configuration
+variable "cert_manager_version" {
+  description = "Cert-manager version to install"
+  type        = string
+  default     = "1.13.0"
+}
+
+variable "letsencrypt_email" {
+  description = "Email address for Let's Encrypt notifications"
+  type        = string
+  sensitive   = true
+  # DO NOT set default value - use environment variable TF_VAR_letsencrypt_email
+}
+
+variable "ingress_class" {
+  description = "Ingress class for HTTP01 challenge"
+  type        = string
+  default     = "nginx"
+}
+
+variable "enable_cert_manager_prometheus" {
+  description = "Enable Prometheus monitoring for cert-manager"
+  type        = bool
+  default     = false
+}
