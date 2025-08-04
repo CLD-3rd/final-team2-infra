@@ -89,8 +89,22 @@ module "cert_manager" {
   # Tags
   common_tags = var.common_tags
 
-  # Dependencies - Wait for EKS to be fully ready
-  eks_cluster_ready = module.eks.cluster_status
+  # Dependencies - Wait for kubectl to be ready
+  eks_cluster_ready = module.kubectl_setup.kubectl_ready
+  depends_on = [module.kubectl_setup]
+}
+
+# Kubectl Setup Module
+module "kubectl_setup" {
+  source = "./modules/kubectl-setup"
+
+  # EKS Cluster Information
+  cluster_name         = module.eks.cluster_name
+  cluster_endpoint     = module.eks.cluster_endpoint
+  cluster_ca_certificate = module.eks.cluster_certificate_authority_data
+  aws_region           = var.aws_region
+  cluster_ready        = module.eks.cluster_status
+
   depends_on = [module.eks]
 }
 

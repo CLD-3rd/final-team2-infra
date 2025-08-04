@@ -48,18 +48,18 @@ resource "helm_release" "cert_manager" {
   timeout = 900  # 15 minutes timeout
   wait_for_jobs = true
 
-  # Ensure EKS cluster is fully ready before cert-manager installation
+  # Ensure kubectl is ready before cert-manager installation
   depends_on = [
     kubernetes_namespace.cert_manager,
-    time_sleep.wait_for_eks_ready
+    time_sleep.wait_for_kubectl_ready
   ]
 }
 
-# Wait for EKS cluster to be fully ready
-resource "time_sleep" "wait_for_eks_ready" {
+# Wait for kubectl to be ready
+resource "time_sleep" "wait_for_kubectl_ready" {
   depends_on = [var.eks_cluster_ready]
 
-  create_duration = "60s"  # Wait 60 seconds after EKS is ready
+  create_duration = "30s"  # Wait 30 seconds after kubectl is ready
 }
 
 # Cert-Manager Namespace
