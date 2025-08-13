@@ -19,3 +19,8 @@ variable "alb_security_group_id" {
   type        = string
   description = "ALB Security Group ID to be attached to ArgoCD Ingress"
 } 
+
+variable "domain_name" {
+  type        = string
+  description = "Base domain name (e.g., goteego.store) used to build ArgoCD hostname"
+}
