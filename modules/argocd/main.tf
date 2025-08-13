@@ -27,8 +27,8 @@ resource "helm_release" "argocd" {
             "alb.ingress.kubernetes.io/healthcheck-path" = "/healthz"
             "alb.ingress.kubernetes.io/success-codes"    = "200-399"
           }
-          hostname = "argocd.goteego.store"
-          hosts = ["argocd.goteego.store"]
+          hostname = "argocd.${var.domain_name}"
+          hosts = ["argocd.${var.domain_name}"]
           paths = ["/"]
         }
       }
