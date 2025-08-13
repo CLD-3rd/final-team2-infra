@@ -376,7 +376,7 @@ resource "aws_route53_record" "rds_endpoint" {
   name    = "pg-db.${var.domain_name}" # 예: pg-db.goteego.store
   type    = "CNAME"
   ttl     = 300
-  records = [module.rds.db_instance_endpoint] # RDS 모듈 output
+  records = [module.rds.db_instance_address] # 호스트네임만 사용
 }
 
 # MongoDB (DocumentDB)
@@ -462,6 +462,29 @@ resource "kubernetes_namespace" "argocd" {
   depends_on = [module.eks]
 }
 
+# ExternalDNS (Route53 자동화)
+module "external_dns" {
+  source = "./modules/external-dns"
+
+  project_name              = var.project_name
+  environment               = var.environment
+  namespace                 = "kube-system"
+  cluster_oidc_provider_arn = module.eks.cluster_oidc_provider_arn
+  cluster_oidc_issuer_url   = module.eks.cluster_oidc_issuer_url
+
+  domain_filters = [var.domain_name]
+  hosted_zone_id = aws_route53_zone.main.zone_id
+  txt_owner_id   = "${var.project_name}-${var.environment}"
+  sources        = ["ingress"]
+
+  common_tags = var.common_tags
+
+  depends_on = [
+    module.eks,
+    aws_route53_zone.main
+  ]
+}
+
 # IRSA for cert-manager (미사용: TLS 비활성화로 주석 처리)
 # module "cert_manager_irsa" {
 #   source = "./modules/irsa"
@@ -538,6 +561,7 @@ module "argocd" {
   timeout       = 900     # 900초 대기 (EKS 설치 대기)
 
   alb_security_group_id = module.alb.alb_security_group_id
+  domain_name           = var.domain_name
 
   depends_on = [
     module.eks,
@@ -567,20 +591,7 @@ module "argocd" {
 # }
 
 # Route53 CNAME for ArgoCD: argocd.<domain> → ALB hostname
-# resource "aws_route53_record" "argocd" {
-#   count   = local.argocd_ingress_hostname != null && length(local.argocd_ingress_hostname) > 0 ? 1 : 0
-#   zone_id = aws_route53_zone.main.zone_id
-#   name    = "argocd.${var.domain_name}"
-#   type    = "CNAME"
-#   ttl     = 300
-#
-#   records = [local.argocd_ingress_hostname]
-#
-#   depends_on = [
-#     aws_route53_zone.main,
-#     module.argocd
-#   ]
-# }
+# ExternalDNS를 통한 자동화를 사용할 예정이므로 Terraform 직접 생성은 유지 보류
 
 # Route53 CNAME for prod API: api.<domain> → provided hostname (conditional)
 # resource "aws_route53_record" "api_prod" {
