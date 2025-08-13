@@ -6,9 +6,15 @@ output "db_instance_id" {
 
 # RDS 엔드포인트 (애플리케이션이 연결할 주소)
 output "db_instance_endpoint" {
-  description = "The RDS instance endpoint"
+  description = "The RDS instance endpoint (address:port). Prefer using address for DNS records."
   value       = aws_db_instance.this.endpoint
   sensitive   = true
+}
+
+# RDS 호스트네임만 출력 (DNS CNAME에 사용)
+output "db_instance_address" {
+  description = "The RDS instance address (hostname without port)"
+  value       = aws_db_instance.this.address
 }
 
 # RDS 포트 (기본 PostgreSQL: 5432)
