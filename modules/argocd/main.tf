@@ -7,12 +7,14 @@ resource "helm_release" "argocd" {
   timeout    = var.timeout
   force_update = true
   reuse_values = false
+  atomic = true
+  wait   = true
 
   values = [
     yamlencode({
       server = {
-        service    = { type = "ClusterIP" }
-        extraArgs  = ["--insecure"]
+        service      = { type = "ClusterIP" }
+        extraArgs    = ["--insecure"]
         replicaCount = 1
         ingress = {
           enabled          = true
@@ -27,17 +29,23 @@ resource "helm_release" "argocd" {
             "alb.ingress.kubernetes.io/healthcheck-path" = "/healthz"
             "alb.ingress.kubernetes.io/success-codes"    = "200-399"
           }
-          hostname = "argocd.goteego.store"
-          hosts = ["argocd.goteego.store"]
-          paths = ["/"]
+          hosts = [
+            {
+              host  = "argocd.goteego.store"
+              paths = [
+                {
+                  path     = "/"
+                  pathType = "Prefix"
+                }
+              ]
+            }
+          ]
         }
       }
       configs = {
         params = { "server.insecure" = true }
         rbac   = { "policy.default" = "role:readonly" }
-        repositories = [
-          { url = "https://github.com/CLD-3rd/final-team2-manifest.git" }
-        ]
+        repositories = [ { url = "https://github.com/CLD-3rd/final-team2-manifest.git" } ]
       }
       applicationSet = { enabled = true }
     })
