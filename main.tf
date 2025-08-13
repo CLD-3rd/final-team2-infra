@@ -564,13 +564,20 @@ locals {
 
 # Route53 CNAME for ArgoCD: argocd.<domain> → ALB hostname
 resource "aws_route53_record" "argocd" {
-  count   = local.argocd_alb_hostname != "" ? 1 : 0
+  count   = 1
   zone_id = aws_route53_zone.main.zone_id
   name    = "argocd.${var.domain_name}"
   type    = "CNAME"
   ttl     = 300
 
   records = [local.argocd_alb_hostname]
+
+  lifecycle {
+    precondition {
+      condition     = local.argocd_alb_hostname != ""
+      error_message = "ArgoCD Ingress hostname not ready; re-apply after ALB is provisioned."
+    }
+  }
 
   depends_on = [
     aws_route53_zone.main,
