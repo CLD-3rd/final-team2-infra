@@ -558,16 +558,19 @@ data "kubernetes_ingress_v1" "argocd" {
   ]
 }
 
+locals {
+  argocd_alb_hostname = try(data.kubernetes_ingress_v1.argocd.status[0].load_balancer[0].ingress[0].hostname, "")
+}
+
 # Route53 CNAME for ArgoCD: argocd.<domain> → ALB hostname
 resource "aws_route53_record" "argocd" {
+  count   = local.argocd_alb_hostname != "" ? 1 : 0
   zone_id = aws_route53_zone.main.zone_id
   name    = "argocd.${var.domain_name}"
   type    = "CNAME"
   ttl     = 300
 
-  records = [
-    data.kubernetes_ingress_v1.argocd.status[0].load_balancer[0].ingress[0].hostname,
-  ]
+  records = [local.argocd_alb_hostname]
 
   depends_on = [
     aws_route53_zone.main,
